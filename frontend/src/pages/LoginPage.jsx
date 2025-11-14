@@ -1,9 +1,51 @@
 import { Link } from "react-router";
+import { useNavigate } from "react-router";
+import { useForm } from "../hooks/useForm"
+import { useState } from "react";
+import { Loading } from "../components/Loading";
 
-export const LoginPage = () => {
   // TODO: Integrar lógica de autenticación aquí
   // TODO: Implementar useForm para el manejo del formulario
   // TODO: Implementar función handleSubmit
+
+export const LoginPage = () => {
+  const navigate = useNavigate();
+  const { handleChange, formState } = useForm({
+    username: "",
+    password: "",
+  });
+  const [loading, setLoading] = useState(false);
+  
+  const handleSubmit = async(e) => {
+    e.preventDefault()
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json", 
+
+        },
+        body: JSON.stringify(formState),
+        credentials: 'include'
+      });
+
+      if(response.ok) {
+        navigate("/home")
+      }else {
+        console.log("Credenciales inválidas o incorrectas");
+      }
+    } catch (error) {
+      console.log("Error al iniciar sesión:", error);
+    }finally {
+      setLoading(false);
+    }
+  }
+    if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-8">
@@ -20,7 +62,7 @@ export const LoginPage = () => {
           </p>
         </div>
 
-        <form onSubmit={(event) => {}}>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
               htmlFor="username"
@@ -32,6 +74,8 @@ export const LoginPage = () => {
               type="text"
               id="username"
               name="username"
+              value={formState.username}
+              onChange={handleChange}
               placeholder="Ingresa tu usuario"
               className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
@@ -49,6 +93,8 @@ export const LoginPage = () => {
               type="password"
               id="password"
               name="password"
+              value={formState.password}
+              onChange={handleChange}
               placeholder="Ingresa tu contraseña"
               className="w-full border border-gray-300 rounded p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
@@ -59,6 +105,7 @@ export const LoginPage = () => {
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded transition-colors"
           >
+            {loading ? "Cargando..." : "Iniciar Sesión"}
             Ingresar
           </button>
         </form>
